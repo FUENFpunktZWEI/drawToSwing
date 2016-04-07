@@ -5,6 +5,7 @@ package mydraw;
 // You may study, use, modify, and distribute it for non-commercial purposes.
 // For any commercial use, see http://www.davidflanagan.com/javaexamples
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -15,7 +16,8 @@ public class Draw {
 
 	/** Application constructor:  create an instance of our GUI class */
 	public Draw() { window = new DrawGUI(this); }
-	protected Frame window;
+
+	protected JFrame window;
 
 	/** This is the application method that processes commands sent by the GUI */
 	public void doCommand(String command) {
@@ -25,8 +27,7 @@ public class Draw {
 			Graphics g = window.getGraphics();
 			g.setColor(window.getBackground());
 			g.fillRect(0, 0, window.getSize().width, window.getSize().height);
-		}
-		else if (command.equals("quit")) {      // quit the application
+		} else if (command.equals("quit")) {      // quit the application
 			window.dispose();                         // close the GUI
 			System.exit(0);                           // and exit.
 		}
@@ -34,8 +35,8 @@ public class Draw {
 }
 
 /** This class implements the GUI for our application */
-class DrawGUI extends Frame {
-	Draw  app;      // A reference to the application, to send commands to.
+class DrawGUI extends JFrame {
+	Draw app;      // A reference to the application, to send commands to.
 	Color color;
 
 	/**
@@ -48,13 +49,13 @@ class DrawGUI extends Frame {
 		color = Color.black;  // the current drawing color
 
 		// selector for drawing modes
-		Choice shape_chooser = new Choice();
-		shape_chooser.add("Scribble");
-		shape_chooser.add("Rectangle");
-		shape_chooser.add("Oval");
+		JComboBox shape_chooser = new JComboBox();
+		shape_chooser.addItem("Scribble");
+		shape_chooser.addItem("Rectangle");
+		shape_chooser.addItem("Oval");
 
 		// selector for drawing colors
-		Choice color_chooser = new Choice();
+		JColorChooser color_chooser = new JColorChooser();
 		color_chooser.add("Black");
 		color_chooser.add("Green");
 		color_chooser.add("Red");
