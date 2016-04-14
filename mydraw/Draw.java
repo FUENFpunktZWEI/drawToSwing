@@ -6,8 +6,6 @@ package mydraw;
 // For any commercial use, see http://www.davidflanagan.com/javaexamples
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 
 /** The application class.  Processes high-level commands sent by GUI */
 public class Draw {
