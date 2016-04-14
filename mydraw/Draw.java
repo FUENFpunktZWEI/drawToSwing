@@ -6,6 +6,8 @@ package mydraw;
 // For any commercial use, see http://www.davidflanagan.com/javaexamples
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
 /** The application class.  Processes high-level commands sent by GUI */
 public class Draw {
@@ -44,7 +46,6 @@ class DrawGUI extends JFrame {
 	public DrawGUI(Draw application) {
 		super("Draw");        // Create the window
 		app = application;    // Remember the application reference
-		color = Color.black;  // the current drawing color
 
 		// selector for drawing modes
 		JComboBox shape_chooser = new JComboBox();
@@ -53,24 +54,37 @@ class DrawGUI extends JFrame {
 		shape_chooser.addItem("Oval");
 
 		// selector for drawing colors
-		JColorChooser color_chooser = new JColorChooser();
-		color_chooser.add("Black");
-		color_chooser.add("Green");
-		color_chooser.add("Red");
-		color_chooser.add("Blue");
+		JComboBox color_chooser = new JComboBox();
+		color_chooser.addItem("Blue");
+		color_chooser.addItem("Red");
+		color_chooser.addItem("Green");
+		color_chooser.addItem("Black");
 
 		// Create two buttons
-		Button clear = new Button("Clear");
-		Button quit = new Button("Quit");
+		JButton clear = new JButton("Clear");
+		JButton quit = new JButton("Quit");
 
 		// Set a LayoutManager, and add the choosers and buttons to the window.
-		this.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-		this.add(new Label("Shape:"));
-		this.add(shape_chooser);
-		this.add(new Label("Color:"));
-		this.add(color_chooser);
-		this.add(clear);
-		this.add(quit);
+		Container cp = this.getContentPane();
+		cp.setLayout(new BorderLayout());
+
+		// Setzt einen Panel, die Buttons in einer Leiste hat.
+		NavigationPanel navigationPanel = new NavigationPanel(new FlowLayout());
+		navigationPanel.add(new JLabel("Shape:"));
+		navigationPanel.add(shape_chooser);
+		navigationPanel.add(new JLabel("Color:"));
+		navigationPanel.add(color_chooser);
+		navigationPanel.add(quit);
+		navigationPanel.add(clear);
+		navigationPanel.setBackground(Color.magenta);
+
+		// Setzt den Panel, auf dem gemalt wird
+		final JPanel drawPanel = new JPanel();
+		drawPanel.setBackground(Color.white);
+
+		cp.add(navigationPanel, BorderLayout.NORTH);
+		cp.add(drawPanel, BorderLayout.CENTER);
+
 
 		// Here's a local class used for action listeners for the buttons
 		class DrawActionListener implements ActionListener {
@@ -87,6 +101,7 @@ class DrawGUI extends JFrame {
 
 		// Define action listener adapters that connect the  buttons to the app
 		clear.addActionListener(new DrawActionListener("clear"));
+
 		quit.addActionListener(new DrawActionListener("quit"));
 
 		// this class determines how mouse events are to be interpreted,
@@ -269,5 +284,20 @@ class DrawGUI extends JFrame {
 		this.setSize(500, 400);
 		this.setBackground(Color.white);
 		this.show();
+	}
+
+
+}
+
+/**
+ * @author Sabrina Buczko und Tom Kasatek (Gruppe 2)
+ */
+class NavigationPanel extends JPanel {
+	public NavigationPanel(FlowLayout flowLayout) {
+		super(flowLayout);
+	}
+
+	public void clearBackground(JPanel background){
+		background.setBackground(Color.white);
 	}
 }
