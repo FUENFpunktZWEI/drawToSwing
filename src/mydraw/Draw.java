@@ -18,6 +18,7 @@ public class Draw {
 	/**
 	 * Startpunkt.  Kreirt eine Instanz der Apllikations Klasse
 	 */
+
 	public static void main(String[] args) throws ColorException, IOException {
 		Draw x = new Draw();
 	}
