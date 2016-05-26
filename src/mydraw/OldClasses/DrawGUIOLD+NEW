@@ -24,6 +24,9 @@ public class DrawGUI extends JFrame {
 	Container       cp;               // Dadrauf werden die einzelnen Panels abgelegt
 	NavigationPanel navigationPanel; // Hier werden die Buttons für Funktionen abgelegt
 	protected DrawPanel drawPanel;	// Der Panel auf dem das Bild gemalt wirt
+	BufferedImage image = (
+			new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB)
+	);	// Image jederzeit mit abspeichern, um es später einfach auszulesen
 	HashMap<String, Color> colorMap = new HashMap<String, Color>(); // Map zu Farbauswahl
 	JComboBox shape_chooser; // Zur Auswahl des Zeichenwerkzeuges
 	JComboBox color_chooser; // Zur Auswahl der Farbe des Zeichenwerkzeuges
@@ -117,12 +120,14 @@ public class DrawGUI extends JFrame {
 			class ScribbleDrawer extends ShapeDrawer {
 				int lastx, lasty;
 				CommandQueue.Scribble line;
+				Graphics2D g2D = image.createGraphics();
 
 				public void mousePressed(MouseEvent e) {
 					line = new CommandQueue.Scribble(color);
 					lastx = e.getX();
 					lasty = e.getY();
 					line.addPoint(new Point(e.getX(), e.getY()));
+					g2D.setColor(color);
 				}
 
 				public void mouseDragged(MouseEvent e) {
@@ -131,12 +136,13 @@ public class DrawGUI extends JFrame {
 					g.setColor(gui.color);
 					g.setPaintMode();
 					g.drawLine(lastx, lasty, x, y);
+					g2D.drawLine(lastx, lasty, x, y);
 					line.addPoint(new Point(x, y));
 //					drawPanel.repaint();
 					lastx = x;
 					lasty = y;
 				}
-				
+
 				public void mouseReleased(MouseEvent e) {
 					commandQueue.addScribble(line);
 					commandQueue.drawLast(drawPanel.getGraphics());
@@ -147,12 +153,15 @@ public class DrawGUI extends JFrame {
 			class RectangleDrawer extends ShapeDrawer {
 				int pressx, pressy;
 				int lastx = -1, lasty = -1;
-				
+				Graphics2D g2D;
+
 
 				// Maus gedrückt => setzt den ersten Punkt des Dreiecks
 				public void mousePressed(MouseEvent e) {
 					pressx = e.getX();
 					pressy = e.getY();
+					g2D = image.createGraphics();
+					g2D.setColor(color);
 				}
 
 				// Maus losgelassen => Setzt zweiten Punkt des Viereck
@@ -172,6 +181,8 @@ public class DrawGUI extends JFrame {
 //					doDraw(pressx, pressy, e.getX(), e.getY(), g);
 					commandQueue.addRectangle(gui.color, pressx, pressy, e.getX(), e.getY());
 					commandQueue.drawLast(g);
+					g2D.dispose();
+					g2D = null;
 				}
 
 				// Maus in Bewegung => Setzt temporären zweiten Punkt des Dreiecks
@@ -198,6 +209,7 @@ public class DrawGUI extends JFrame {
 					int h = Math.abs(y1 - y0);
 					// Zeichne Dreieck
 					g.drawRect(x, y, w, h);
+					g2D.drawRect(x, y, w, h);
 //					drawPanel.paintComponents(g);
 				}
 			}
@@ -211,9 +223,10 @@ public class DrawGUI extends JFrame {
 					int h = Math.abs(y1 - y0);
 					// Zeichne Oval
 					g.drawOval(x, y, w, h);
+					g2D.drawOval(x, y, w, h);
 //					drawPanel.paintComponents(g);
 				}
-				
+
 				public void mouseReleased(MouseEvent e) {
 					Graphics g = drawPanel.getGraphics();
 					if (lastx != -1) {
@@ -225,6 +238,8 @@ public class DrawGUI extends JFrame {
 					}
 					commandQueue.addOval(gui.color, pressx, pressy, e.getX(), e.getY());
 					commandQueue.drawLast(g);
+					g2D.dispose();
+					g2D = null;
 				}
 			}
 
@@ -232,7 +247,7 @@ public class DrawGUI extends JFrame {
 			RectangleDrawer rectDrawer     = new RectangleDrawer();
 			OvalDrawer      ovalDrawer     = new OvalDrawer();
 			ShapeDrawer currentDrawer;
-			
+
 			public ShapeManager(DrawGUI itsGui) {
 				gui = itsGui;
 				// default: scribble mode
@@ -329,7 +344,9 @@ public class DrawGUI extends JFrame {
 			}
 		});
 
-		drawPanel.setPreferredSize(new Dimension(500,500));
+		// Am Ende wird Größe des Fensters gesetzt und angezeigt
+		drawPanel.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+
 		this.pack();
 		drawPanel.setBackground(Color.white);
 		newBGColor = Color.white;
@@ -353,7 +370,7 @@ public class DrawGUI extends JFrame {
 
 	/*
 	 * Setzt einen Panel, der Buttons in einer Leiste hat.
-	 * 
+	 *
 	 * @param quit Ein Button, der zum schließen des Fensters zuständig ist
 	 * @param clear Ein Button, der zum Löschen der Zeichnung zuständig ist.
 	 */

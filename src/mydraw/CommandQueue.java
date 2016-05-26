@@ -38,7 +38,7 @@ public class CommandQueue {
 			g.drawRect(x, y, w, h);
 		}
 	}
-	
+
 	public void addRectangle(Color color, int x0, int y0, int x1, int y1){
 		Rectangle rc = new Rectangle(color, x0, y0, x1, y1);
 		queue.add(rc);
@@ -48,10 +48,17 @@ public class CommandQueue {
 		Oval oval = new Oval(color, x0, y0, x1, y1);
 		queue.add(oval);
 	}
-	
+
 	public void addScribble(Scribble scribble){
 		queue.add(scribble);
 	}
+
+	public void addLine(Color color, int x1, int y1, int x2, int y2){
+		Scribble scribble = new Scribble(color);
+		scribble.addPoint(new Point(x1, y1));
+		scribble.addPoint(new Point(x2, y2));
+		queue.add(scribble);
+	};
 
     class Oval extends Rectangle{
 		public Oval(Color color, int x0, int y0, int x1, int y1) {
@@ -99,7 +106,8 @@ public class CommandQueue {
     public void redraw(Graphics g){
     	for (Iterator<Drawable> it = queue.iterator(); it.hasNext(); ){
     		it.next().draw(g);
-    	}
+			System.out.println("");
+		}
     	System.out.println("");
 
     }

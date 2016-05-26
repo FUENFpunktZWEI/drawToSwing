@@ -55,9 +55,12 @@ public class Draw {
 	 * @param width Wert den die Breite haben soll
 	 */
 	public void setWidth(int width) {
+		Graphics2D g = window.image.createGraphics();
+		g.drawImage(window.image, 0, 0, width, window.image.getHeight(), null);
 		window.drawPanel.setPreferredSize(new Dimension(width, getHeight()));
 		window.drawPanel.setSize(new Dimension(width, getHeight()));
 		window.pack();
+		g.dispose();
 	}
 
 	/**
@@ -66,9 +69,12 @@ public class Draw {
 	 * @param height Wert den die Höhe haben soll
 	 */
 	public void setHeight(int height) {
+		Graphics2D g = window.image.createGraphics();
+		g.drawImage(window.image, 0, 0, window.image.getWidth(), height, null);
 		window.drawPanel.setPreferredSize(new Dimension(getWidth(), height));
 		window.drawPanel.setSize(new Dimension(getWidth(), height));
 		window.pack();
+		g.dispose();
 	}
 
 	/**
@@ -101,19 +107,52 @@ public class Draw {
 	 * @param new_color die Farbe die gesetzt werden soll
 	 */
 	public void setBGColor(String new_color) throws ColorException {
+		Graphics2D g2D = window.image.createGraphics();
 		if (new_color.equals("Black")) {
+			g2D.setColor(Color.black);
+			for (int i = 0; i < getWidth(); i++){
+				g2D.drawLine(0, i, getWidth() - 1, i);
+			}
+			window.drawPanel.updateUI();
+			window.drawPanel.setBackground(Color.black);
 			window.newBGColor = Color.black;
 		} else if (new_color.equals("Green")) {
+			g2D.setColor(Color.green);
+			for (int i = 0; i < getWidth(); i++){
+				g2D.drawLine(0, i, getWidth() - 1, i);
+			}
+			window.drawPanel.updateUI();
+			window.drawPanel.setBackground(Color.green);
 			window.newBGColor = Color.green;
 		} else if (new_color.equals("Red")) {
+			g2D.setColor(Color.red);
+			for (int i = 0; i < getWidth(); i++){
+				g2D.drawLine(0, i, getWidth() - 1, i);
+			}
+			window.drawPanel.updateUI();
+			window.drawPanel.setBackground(Color.red);
 			window.newBGColor = Color.red;
 		} else if (new_color.equals("Blue")) {
+			g2D.setColor(Color.blue);
+			for (int i = 0; i < getWidth(); i++){
+				g2D.drawLine(0, i, getWidth() - 1, i);
+			}
+			window.drawPanel.updateUI();
+			window.drawPanel.setBackground(Color.blue);
 			window.newBGColor = Color.blue;
 		} else if (new_color.equals("White")) {
+			g2D.setColor(Color.white);
+			for (int i = 0; i < getWidth(); i++){
+				g2D.drawLine(0, i, getWidth() - 1, i);
+			}
+			window.drawPanel.updateUI();
+			window.drawPanel.setBackground(Color.white);
 			window.newBGColor = Color.white;
 		} else {
 			throw new ColorException();
 		}
+		g2D.dispose();
+		g2D = null;
 	}
 
 	/**
@@ -143,6 +182,12 @@ public class Draw {
 		//		g.setPaintMode();
 		//		g.drawRect(x, y, w, h);
 		window.commandQueue.addRectangle(window.color, x, y, w, h);
+		Graphics2D g2D;
+		g2D = window.image.createGraphics();
+		g2D.setColor(window.color);
+		g2D.drawRect(x, y, w, h);
+		g2D.dispose();
+		g2D = null;
 	}
 
 	/**
@@ -162,6 +207,12 @@ public class Draw {
 //		g.setPaintMode();
 //		g.drawOval(x, y, w, h);
 		window.commandQueue.addOval(window.color, x, y, w, h);
+		Graphics2D g2D;
+		g2D = window.image.createGraphics();
+		g2D.setColor(window.color);
+		g2D.drawOval(x, y, w, h);
+		g2D.dispose();
+		g2D = null;
 	}
 
 	/**
@@ -174,19 +225,27 @@ public class Draw {
 //		g.setColor(window.color);
 //		g.setPaintMode();
 		Graphics2D g2D;
+		g2D = window.image.createGraphics();
+		g2D.setColor(window.color);
 		for (int i = 1; i <= points.size(); i++) {
 			if (i == points.size()) {
 //				g.drawLine((int) points.get(i - 1).getX(), (int) points.get(i - 1).getY(), (int) points.get(0).getX(),
 //						(int) points.get(0).getY());
 				window.commandQueue.addLine(window.color, (int) points.get(i - 1).getX(), (int) points.get(i - 1).getY(), (int) points.get(0).getX(),
 						(int) points.get(0).getY());
+				g2D.drawLine((int) points.get(i - 1).getX(), (int) points.get(i - 1).getY(), (int) points.get(0).getX(),
+						(int) points.get(0).getY());
 			} else {
 //				g.drawLine((int) points.get(i - 1).getX(), (int) points.get(i - 1).getY(), (int) points.get(i).getX(),
 //						(int) points.get(i).getY());
 				window.commandQueue.addLine(window.color, (int) points.get(i - 1).getX(), (int) points.get(i - 1).getY(), (int) points.get(i).getX(),
 												(int) points.get(i).getY());
+				g2D.drawLine((int) points.get(i - 1).getX(), (int) points.get(i - 1).getY(), (int) points.get(i).getX(),
+						(int) points.get(i).getY());
 			}
 		}
+		g2D.dispose();
+		g2D = null;
 	}
 
 	/**
@@ -211,7 +270,7 @@ public class Draw {
 	 */
 	public void autoDraw() throws ColorException {
 		setWidth(500);
-		setHeight(500);
+		setHeight(500);;
 		setBGColor("Blue");
 		drawOval(new Point(10, 10), new Point(200, 200));
 		setFGColor("Red");

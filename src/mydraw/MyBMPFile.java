@@ -5,7 +5,7 @@ import java.awt.image.*;
 
 /** Import and export Windows bitmap (*.bmp) images
  */
-public class MyBMBFile extends Component {
+public class MyBMPFile extends Component {
 
 	/**
 	 Read a Windows bitmap file (*.bmp)
@@ -14,7 +14,7 @@ public class MyBMBFile extends Component {
 	 */
 	static public Image read(String filename) throws IOException
 	{
-		MyBMBFile reader = new MyBMBFile();
+		MyBMPFile reader = new MyBMPFile();
 
 		return reader.loadBitmap(filename);
 	}
@@ -26,7 +26,7 @@ public class MyBMBFile extends Component {
 	 */
 	static public void write(String filename, Image image) throws IOException
 	{
-		MyBMBFile reader = new MyBMBFile();
+		MyBMPFile reader = new MyBMPFile();
 
 		reader.saveBitmap(filename, image, image.getWidth(reader), image.getHeight(reader));
 	}
@@ -67,7 +67,7 @@ public class MyBMBFile extends Component {
 	private BufferedOutputStream fo;
 
 	//--- Default constructor --- CHANGED TO PUBLIC !!!!!
-	public MyBMBFile() {
+	public MyBMPFile() {
 
 	}
 
