@@ -22,12 +22,13 @@ import javax.swing.*;
  * @author Tom Kastek und Sabrina Buczko
  */
 public class DrawGUI extends JFrame {
-	Draw      app;                 // A reference to the application, to send commands to.
-	Color     color;              // Speichert die Farbe in der gemalt werden soll.
-	Color     newBGColor;  // saves the Background Color
-	String    colorName;           // colorName wird in einem extra String zur Abfrage gespeichert
-	Container cp;               // Dadrauf werden die einzelnen Panels abgelegt
-	JMenuBar  jMenuBar; // Menu Bar, zur Auswahl aller Funktionen
+	Draw            app;                 // A reference to the application, to send commands to.
+	Color           color;              // Speichert die Farbe in der gemalt werden soll.
+	Color           newBGColor;  // saves the Background Color
+	String          colorName;           // colorName wird in einem extra String zur Abfrage gespeichert
+	Container       cp;               // Dadrauf werden die einzelnen Panels abgelegt
+	NavigationPanel navigationPanel; // Hier werden die Buttons für Funktionen abgelegt
+	JMenuBar jMenuBar;
 	protected DrawPanel drawPanel;    // Der Panel auf dem das Bild gemalt wirt
 	HashMap<String, Color> colorMap = new HashMap<String, Color>(); // Map zu Farbauswahl
 	JComboBox    shape_chooser; // Zur Auswahl des Zeichenwerkzeuges
@@ -35,7 +36,7 @@ public class DrawGUI extends JFrame {
 	JComboBox    bgColor_chooser; // Zur Auswahl der Hintergrundfarbe
 	MyBMPFile    myBMPFile; // Hilfsklasse, um Bilder als bmpFile zu speicher.
 	CommandQueue commandQueue; // Hier werden alle Mal-Kommandos gespeichert.
-	JMenuItem    undoItem, redoItem; // Items um letzte Aktion rückgängig und wieder zurück zu machen
+	JButton      undo, redo;
 
 	/**
 	 * Der GUI Konstruktor macht all die Arbeit um eine GUI zu erstellen
@@ -47,48 +48,40 @@ public class DrawGUI extends JFrame {
 		commandQueue = new CommandQueue();
 		myBMPFile = new MyBMPFile();
 
-		// Auswahlfunktionen aufsetzen
 		setShapeChooser();
 		fillColorMap();
 		setColorChooser();
 		setBGColorChooser();
 
-		// JMenuBar aufsetzen und Items anhängen
 		jMenuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
 		JMenuItem clearItem = new JMenuItem("Clear");
 		JMenuItem quitItem = new JMenuItem("Quit");
 		JMenuItem autoItem = new JMenuItem("Auto");
-		JMenuItem saveItem = new JMenuItem("Save");
-		undoItem = new JMenuItem("Undo");
-		redoItem = new JMenuItem("Redo");
-		JMenuItem writeCommandsItem = new JMenuItem("Save Commands");
-		JMenuItem readCommandsItem = new JMenuItem("Read Commands");
-		fileMenu.add(saveItem);
-		fileMenu.add(undoItem);
-		fileMenu.add(redoItem);
 		fileMenu.add(clearItem);
-		fileMenu.add(autoItem);
-		fileMenu.add(writeCommandsItem);
-		fileMenu.add(readCommandsItem);
 		fileMenu.add(quitItem);
+		fileMenu.add(autoItem);
 		jMenuBar.add(fileMenu);
-		jMenuBar.add(new JLabel("Shape: "));
-		jMenuBar.add(shape_chooser);
-		jMenuBar.add(new JLabel("Color: "));
-		jMenuBar.add(color_chooser);
-		jMenuBar.add(new JLabel("BG Color: "));
-		jMenuBar.add(bgColor_chooser);
+//		JButton clear = new JButton("Clear");    // Button, der das Bild löschen soll
+//		JButton quit = new JButton("Quit");        // Button, der das Programm beenden soll.
+//		JButton auto = new JButton("Auto"); // Button, der ein autom. Bild malt
+		JButton saveImage = new JButton("Save"); // Button, der das akutelle Bild asl BMP speichern soll
+		undo = new JButton("Undo"); // Button, um letzte aktion zu wiederrufen
+		redo = new JButton("Redo"); // Button, um undo rückgängig zu mächen
+		JButton commandSave = new JButton("Save cmds"); // Speichere Kommandos als txt file.
+		JButton commandRead = new JButton("Read cmds"); // Lese KommandoDatei aus
 
 		// Setze das Layout für unser Fenster
 		cp = this.getContentPane();
 		cp.setLayout(new BorderLayout());
 
+//		setNavigationPanel(quit, clear, auto, saveImage, undo, redo, commandSave, commandRead);
+
 		// Setzt den Panel, auf dem gemalt wird
 		drawPanel = new DrawPanel();
 
 		// Setzt die Panels auf unseren ContentPane
-		//		cp.add(navigationPanel, BorderLayout.NORTH, 0);
+//		cp.add(navigationPanel, BorderLayout.NORTH, 0);
 		cp.add(jMenuBar, BorderLayout.NORTH, 0);
 		cp.add(drawPanel, BorderLayout.CENTER, 1);
 
@@ -106,8 +99,8 @@ public class DrawGUI extends JFrame {
 					g.setColor(Color.white);
 					g.fillRect(0, 0, getWidth(), getHeight());
 					commandQueue.clear();
-					undoItem.setEnabled(false);
-					redoItem.setEnabled(false);
+					undo.setEnabled(false);
+					redo.setEnabled(false);
 				} else if (command.equals("quit")) {
 					app.window.dispose();
 					System.exit(0);
@@ -120,14 +113,15 @@ public class DrawGUI extends JFrame {
 				} else if (command.equals("save")) {
 					saveImageAsBMB();
 				} else if (command.equals("undo")) {
-					undoItem.setEnabled(commandQueue.undo());
+					undo.setEnabled(commandQueue.undo());
 					Graphics g = drawPanel.getGraphics();
 					redrawBGColor(g);
-					redoItem.setEnabled(true);
+					commandQueue.redraw(g);
+					redo.setEnabled(true);
 				} else if (command.equals("redo")) {
 					Graphics g = drawPanel.getGraphics();
-					redoItem.setEnabled(commandQueue.redo(g));
-					undoItem.setEnabled(true);
+					redo.setEnabled(commandQueue.redo(g));
+					undo.setEnabled(true);
 				} else if (command.equals("commandSave")) {
 					try {
 						commandSave();
@@ -148,11 +142,11 @@ public class DrawGUI extends JFrame {
 		clearItem.addActionListener(new DrawActionListener("clear"));
 		quitItem.addActionListener(new DrawActionListener("quit"));
 		autoItem.addActionListener(new DrawActionListener("auto"));
-		saveItem.addActionListener(new DrawActionListener("save"));
-		undoItem.addActionListener(new DrawActionListener("undo"));
-		redoItem.addActionListener(new DrawActionListener("redo"));
-		writeCommandsItem.addActionListener(new DrawActionListener("commandSave"));
-		readCommandsItem.addActionListener(new DrawActionListener("commandRead"));
+		saveImage.addActionListener(new DrawActionListener("save"));
+		undo.addActionListener(new DrawActionListener("undo"));
+		redo.addActionListener(new DrawActionListener("redo"));
+		commandSave.addActionListener(new DrawActionListener("commandSave"));
+		commandRead.addActionListener(new DrawActionListener("commandRead"));
 
 		// Lokale Klasse, die Maus Events verarbeitet,
 		// abhängig vom aktuellem Shape.
@@ -191,18 +185,17 @@ public class DrawGUI extends JFrame {
 
 				public void mouseReleased(MouseEvent e) {
 					commandQueue.addScribble(line);
-					undoItem.setEnabled(commandQueue.drawLast(drawPanel.getGraphics()));
-					redoItem.setEnabled(false);
+					undo.setEnabled(commandQueue.drawLast(drawPanel.getGraphics()));
 				}
 			}
 
-			// Wenn diese Klasse aktiviert ist, werden Vierecke gezeichnet
+			// Wenn diese Klasse aktiviert ist, werden Dreiecke gezeichnet
 			class RectangleDrawer extends ShapeDrawer {
 				int pressx, pressy;
 				int lastx = -1, lasty = -1;
 
 
-				// Maus gedrückt => setzt den ersten Punkt des Vierecks
+				// Maus gedrückt => setzt den ersten Punkt des Dreiecks
 				public void mousePressed(MouseEvent e) {
 					pressx = e.getX();
 					pressy = e.getY();
@@ -219,12 +212,15 @@ public class DrawGUI extends JFrame {
 						lastx = -1;
 						lasty = -1;
 					}
+					//					g.setPaintMode();
+					//					g.setColor(gui.color);
+					//					// Zeichne das finale Viereck
+					//					doDraw(pressx, pressy, e.getX(), e.getY(), g);
 					commandQueue.addRectangle(gui.color, pressx, pressy, e.getX(), e.getY());
-					undoItem.setEnabled(commandQueue.drawLast(g));
-					redoItem.setEnabled(false);
+					undo.setEnabled(commandQueue.drawLast(g));
 				}
 
-				// Maus in Bewegung => Setzt temporären zweiten Punkt des Vierecks
+				// Maus in Bewegung => Setzt temporären zweiten Punkt des Dreiecks
 				// Zeichnet das resultierende Bild vorübergehend
 				public void mouseDragged(MouseEvent e) {
 					Graphics g = drawPanel.getGraphics();
@@ -236,7 +232,7 @@ public class DrawGUI extends JFrame {
 					}
 					lastx = e.getX();
 					lasty = e.getY();
-					// Zeichne neues temporäres Viereck
+					// Zeichne neues temporäres Dreieck
 					doDraw(pressx, pressy, lastx, lasty, g);
 				}
 
@@ -246,7 +242,7 @@ public class DrawGUI extends JFrame {
 					int y = Math.min(y0, y1);
 					int w = Math.abs(x1 - x0);
 					int h = Math.abs(y1 - y0);
-					// Zeichne Viereck
+					// Zeichne Dreieck
 					g.drawRect(x, y, w, h);
 				}
 			}
@@ -258,7 +254,7 @@ public class DrawGUI extends JFrame {
 					int y = Math.min(y0, y1);
 					int w = Math.abs(x1 - x0);
 					int h = Math.abs(y1 - y0);
-					// Zeichne gefülltes Viereck
+					// Zeichne Dreieck
 					g.fillRect(x, y, w, h);
 				}
 
@@ -272,8 +268,7 @@ public class DrawGUI extends JFrame {
 						lasty = -1;
 					}
 					commandQueue.addRectangleFilled(gui.color, pressx, pressy, e.getX(), e.getY());
-					undoItem.setEnabled(commandQueue.drawLast(g));
-					redoItem.setEnabled(false);
+					undo.setEnabled(commandQueue.drawLast(g));
 				}
 			}
 
@@ -299,13 +294,12 @@ public class DrawGUI extends JFrame {
 						lasty = -1;
 					}
 					commandQueue.addOval(gui.color, pressx, pressy, e.getX(), e.getY());
-					undoItem.setEnabled(commandQueue.drawLast(g));
-					redoItem.setEnabled(false);
+					undo.setEnabled(commandQueue.drawLast(g));
 				}
 			}
 
 			class LineDrawer extends RectangleDrawer {
-				// Maus losgelassen => Setzt zweiten Punkt der Linie
+				// Maus losgelassen => Setzt zweiten Punkt des Viereck
 				// und malt das resultierende Bild
 				public void mouseReleased(MouseEvent e) {
 					Graphics g = drawPanel.getGraphics();
@@ -317,8 +311,7 @@ public class DrawGUI extends JFrame {
 						lasty = -1;
 					}
 					commandQueue.addLine(gui.color, pressx, pressy, e.getX(), e.getY());
-					undoItem.setEnabled(commandQueue.drawLast(g));
-					redoItem.setEnabled(false);
+					undo.setEnabled(commandQueue.drawLast(g));
 				}
 
 				public void doDraw(int x0, int y0, int x1, int y1, Graphics g) {
@@ -347,8 +340,7 @@ public class DrawGUI extends JFrame {
 						lasty = -1;
 					}
 					commandQueue.addOvalFilled(gui.color, pressx, pressy, e.getX(), e.getY());
-					undoItem.setEnabled(commandQueue.drawLast(g));
-					redoItem.setEnabled(false);
+					undo.setEnabled(commandQueue.drawLast(g));
 				}
 			}
 
@@ -363,7 +355,7 @@ public class DrawGUI extends JFrame {
 					pressy = e.getY();
 				}
 
-				// Maus losgelassen => Setzt zweiten Punkt des Dreiecks
+				// Maus losgelassen => Setzt zweiten Punkt des Viereck
 				// und malt das resultierende Bild
 				public void mouseReleased(MouseEvent e) {
 					Graphics g = drawPanel.getGraphics();
@@ -375,8 +367,7 @@ public class DrawGUI extends JFrame {
 						lasty = -1;
 					}
 					commandQueue.addTriangle(gui.color, pressx, pressy, e.getX(), e.getY());
-					undoItem.setEnabled(commandQueue.drawLast(g));
-					redoItem.setEnabled(false);
+					undo.setEnabled(commandQueue.drawLast(g));
 				}
 
 				// Maus in Bewegung => Setzt temporären zweiten Punkt des Dreiecks
@@ -416,7 +407,6 @@ public class DrawGUI extends JFrame {
 				}
 			}
 
-			// Setzt alle Drawer
 			ScribbleDrawer        scribbleDrawer        = new ScribbleDrawer();
 			RectangleDrawer       rectDrawer            = new RectangleDrawer();
 			OvalDrawer            ovalDrawer            = new OvalDrawer();
@@ -426,11 +416,6 @@ public class DrawGUI extends JFrame {
 			LineDrawer            lineDrawer            = new LineDrawer();
 			ShapeDrawer currentDrawer;
 
-			/**
-			 * Der Konstruktor des ShapeManagers
-			 *
-			 * @param itsGui die Gui auf den die Shapes später angewendet werden
-			 */
 			public ShapeManager(DrawGUI itsGui) {
 				gui = itsGui;
 				// default: scribble mode
@@ -506,12 +491,12 @@ public class DrawGUI extends JFrame {
 
 		bgColor_chooser.addItemListener(new BGColorItemListener());
 
-		// Listener, der prüft, wenn sich die Fenstergröße ändert.
 		drawPanel.addComponentListener(new ComponentListener() {
 			@Override
 			public void componentResized(ComponentEvent e) {
 				Graphics g = drawPanel.getGraphics();
 				redrawBGColor(g);
+				commandQueue.redraw(g);
 			}
 
 			@Override
@@ -527,8 +512,8 @@ public class DrawGUI extends JFrame {
 			}
 		});
 
-		undoItem.setEnabled(false);
-		redoItem.setEnabled(false);
+		undo.setEnabled(false);
+		redo.setEnabled(false);
 		drawPanel.setPreferredSize(new Dimension(500, 500));
 		this.pack();
 		colorName = "Black";
@@ -537,20 +522,6 @@ public class DrawGUI extends JFrame {
 		this.setVisible(true);
 	}
 
-	/**
-	 * Liest, commands aus einer .txt File. Alle Befehle werden auf das aktuelle Bild angewandt.
-	 * Die Datei sollte eine Zeile pro Kommando enthalten.
-	 * Die Zeilen sehen für die verschiedenen Shapes beispielsweise so aus:
-	 * Scribble: {color=Black, form=scribble, y1=78, x1=115, y2=78, x2=116, y3=78, x3=117}
-	 * Rectangle: {form=rectangle, color=Black, w=41, x=116, h=23, y=118}
-	 * Oval: {form=oval, color=Black, y1=171, x1=141, y2=12, x2=22}
-	 * Triangle: {form=triangle, color=Black, y1=167, x1=235, y2=182, x2=252}
-	 * filled Rectangle: {form=rectangleFilled, color=Black, w=30, x=311, h=41, y=190}
-	 * filled Oval: {form=ovalFilled, color=Black, y1=219, x1=134, y2=13, x2=27}
-	 * Line: {form=scribble, color=Black, y1=246, x1=159, y2=246, x2=210}
-	 *
-	 * @throws TxtIOException
-	 */
 	private void commandRead() throws TxtIOException {
 		JFileChooser jFileChooser = new JFileChooser();
 		jFileChooser.setDialogTitle("select a command text file");
@@ -562,12 +533,6 @@ public class DrawGUI extends JFrame {
 
 	}
 
-	/**
-	 * Hilfsklasse für commandRead(). Liest die einzelnen Zeilen und malt diese aufs Bild
-	 *
-	 * @param file Datei von der die Kommandos gelesen werden sollen
-	 * @throws TxtIOException
-	 */
 	public void commandReadHelper(File file) throws TxtIOException {
 		InputStream is = null;
 		String line;
@@ -619,8 +584,7 @@ public class DrawGUI extends JFrame {
 						}
 						commandQueue.addScribble(scribble);
 					}
-					undoItem.setEnabled(commandQueue.drawLast(drawPanel.getGraphics()));
-					redoItem.setEnabled(false);
+					undo.setEnabled(commandQueue.drawLast(drawPanel.getGraphics()));
 				} else {
 					throw new TxtIOException();
 				}
@@ -632,10 +596,6 @@ public class DrawGUI extends JFrame {
 		}
 	}
 
-	/**
-	 * Speichert die Kommandos des aktuellen Bildes in einer txt Datei.
-	 * @throws TxtIOException
-	 */
 	private void commandSave() throws TxtIOException {
 		JFileChooser jFileChooser = new JFileChooser();
 		jFileChooser.setDialogTitle("save commands as txt");
@@ -648,11 +608,6 @@ public class DrawGUI extends JFrame {
 
 	}
 
-	/**
-	 * Hilfsklasse für commandSave(). Abhängig vom Pfad übernimmt diese Klasse das speichern.
-	 * @param path
-	 * @throws TxtIOException
-	 */
 	public void commandSaveHelper(String path) throws TxtIOException {
 		if (!path.endsWith(".txt")) {
 			JDialog meinJDialog = new JDialog();
@@ -677,21 +632,12 @@ public class DrawGUI extends JFrame {
 		writer.close();
 	}
 
-	/**
-	 * Ändert die Hintergrundfarbe des Bildes.
-	 *
-	 * @param g Das Bild auf dem gemalt werden soll.
-	 */
 	private void redrawBGColor(Graphics g) {
 		g.setPaintMode();
 		g.setColor(newBGColor);
 		g.fillRect(0, 0, getWidth(), getHeight());
-		commandQueue.redraw(g);
 	}
 
-	/**
-	 * Speichert das aktuelle Bild als .bmp per File Chosser an einem gewünschten Ort.
-	 */
 	private void saveImageAsBMB() {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setDialogTitle("Bild als bmp speichern ...");
@@ -707,6 +653,32 @@ public class DrawGUI extends JFrame {
 		}
 	}
 
+	/*
+	 * Setzt einen Panel, der Buttons in einer Leiste hat.
+	 *
+	 * @param quit Ein Button, der zum schließen des Fensters zuständig ist
+	 * @param clear Ein Button, der zum Löschen der Zeichnung zuständig ist.
+	 */
+	private void setNavigationPanel(JButton quit, JButton clear, JButton auto, JButton save, JButton undo,
+			JButton redo, JButton commandSave, JButton commandRead) {
+		navigationPanel = new NavigationPanel(new FlowLayout());
+		navigationPanel.add(new JLabel("Shape:"));
+		navigationPanel.add(shape_chooser);
+		navigationPanel.add(new JLabel("Color:"));
+		navigationPanel.add(color_chooser);
+		navigationPanel.add(new JLabel("BG Color:"));
+		navigationPanel.add(bgColor_chooser);
+		navigationPanel.add(quit);
+		navigationPanel.add(clear);
+		navigationPanel.add(auto);
+		navigationPanel.add(save);
+		navigationPanel.add(undo);
+		navigationPanel.add(redo);
+		navigationPanel.add(commandSave);
+		navigationPanel.add(commandRead);
+		navigationPanel.setBackground(Color.gray);
+	}
+
 	// Erstellet einen Selektierer um die Farbe auszuwählen
 	private void setColorChooser() {
 		color_chooser = new JComboBox();
@@ -717,7 +689,6 @@ public class DrawGUI extends JFrame {
 		color_chooser.addItem("White");
 	}
 
-	// Erstellt einen Selektierer um die Hintergrundfarbe auszuwählen
 	private void setBGColorChooser() {
 		bgColor_chooser = new JComboBox();
 		bgColor_chooser.addItem("White");
@@ -748,7 +719,6 @@ public class DrawGUI extends JFrame {
 		colorMap.put("White", Color.white);
 	}
 
-	// Gibt das aktuelle Bild als Image aus.
 	public Image getDrawing() {
 		BufferedImage bfi = new BufferedImage(drawPanel.getWidth(), drawPanel.getHeight(), BufferedImage.TYPE_INT_ARGB);
 		Graphics g = bfi.getGraphics();
